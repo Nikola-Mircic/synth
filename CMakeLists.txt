@@ -23,7 +23,12 @@ include_directories(include)
 
 add_executable(synth
         include/libportaudio.a
-        src/main.cpp)
+        src/main.cpp
+        src/App.cpp
+        src/Frame.cpp
+        src/Frame.h
+        src/player/NoiceMaker.cpp
+        src/player/NoiceMaker.h)
 
 target_include_directories(synth PRIVATE /opt/portaudio/src/common/)
 target_link_libraries(synth portaudio)

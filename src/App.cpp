@@ -11,9 +11,5 @@ bool App::OnInit() {
 
     SetTopWindow(frame);
 
-    nm = new NoiseMaker();
-
-    nm->Start();
-
     return true;
 }

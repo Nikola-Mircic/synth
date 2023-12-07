@@ -7,6 +7,7 @@
 
 #include <cstdio>
 #include <cmath>
+#include <iostream>
 
 #include "portaudio.h"
 
@@ -26,10 +27,20 @@ public:
                             PaStreamCallbackFlags statusFlags,
                             void *phase );
 
+    static float* frequencies;
+    static float* amplitudes;
+    static bool* playing;
+
     void Init();
     void Start();
     void Pause();
     void Stop();
+
+    void BindFreq(char target, float freq, float amp);
+    void RemoveFreq(char target);
+
+    void Play(char c);
+    void Release(char c);
 private:
     PaStream* stream;
 };

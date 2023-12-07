@@ -20,16 +20,26 @@ Frame::Frame()
     wxPanel* mainPane = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
     mainPane->Bind(wxEVT_KEY_DOWN, &Frame::KeyDown, this);
     mainPane->Bind(wxEVT_KEY_UP, &Frame::KeyUp, this);
+
+    nm = new NoiseMaker();
+
+    std::string chars("asdfghjkl");
+
+    for(int i=0; i<chars.size(); ++i){
+        nm->BindFreq(chars[i], 120.0f*std::pow(1.5f, i), 0.3f);
+    }
+
+    nm->Start();
 }
 
 void Frame::KeyDown(wxKeyEvent& event) {
-    pressed[event.GetUnicodeKey() - 65] = true;
+    nm->Play(event.GetKeyCode());
 
     event.Skip();
 }
 
 void Frame::KeyUp(wxKeyEvent& event) {
-    pressed[event.GetUnicodeKey() - 65] = false;
+    nm->Release(event.GetKeyCode());
 
     event.Skip();
 }

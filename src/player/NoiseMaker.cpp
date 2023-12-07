@@ -4,7 +4,15 @@
 
 #include "NoiseMaker.h"
 
+float* NoiseMaker::frequencies = new float[26];
+float* NoiseMaker::amplitudes = new float[26];
+bool* NoiseMaker::playing = new bool[26];
+
 NoiseMaker::NoiseMaker() {
+    for(int i=0;i<26;++i) frequencies[i] = 0.0f;
+    for(int i=0;i<26;++i) amplitudes[i] = 0.0f;
+    for(int i=0;i<26;++i) playing[i] = false;
+
     Init();
 }
 
@@ -59,7 +67,7 @@ void NoiseMaker::Stop() {
 */
 
 static float phase = 0.0f;
-static float phaseStep = 3500.0f/SAMPLE_RATE;
+static float phaseStep = 500.0f*2*M_PI/SAMPLE_RATE;
 
 int NoiseMaker::CallbackFunc(const void *inputBuffer, void *outputBuffer,
                         unsigned long framesPerBuffer,
@@ -68,6 +76,8 @@ int NoiseMaker::CallbackFunc(const void *inputBuffer, void *outputBuffer,
                         void *data )
 {
     //float* phasef = (float* ) phase;
+    double callTime = timeInfo->outputBufferDacTime;
+    double timeStep = (1.0f)/SAMPLE_RATE;
 
     float *out = (float*)outputBuffer;
 
@@ -75,12 +85,44 @@ int NoiseMaker::CallbackFunc(const void *inputBuffer, void *outputBuffer,
 
     for(unsigned int i=0; i<framesPerBuffer; ++i )
     {
-        phase+=phaseStep;
-        *(out) = std::sin(phase) * 0.5f;
-        *(out+1) = std::sin(phase) * 0.5f;
-        out += 2;
+         callTime += timeStep;
+        *(out) = 0;
+        *(out+1) = 0;
+        for(int f=0;f<26;++f){
+            if(!playing[f]) continue;
 
+            *(out) += std::sin(frequencies[f]*2*M_PI*callTime) * amplitudes[f];
+            *(out+1) += std::sin(frequencies[f]*2*M_PI*callTime) * amplitudes[f];
+        }
+        out += 2;
     }
     return 0;
+}
+
+void NoiseMaker::BindFreq(char target, float freq, float amp) {
+    int idx = (int) (target - 'a');
+
+    std::cout << idx << std::endl;
+
+    frequencies[idx] = freq;
+    amplitudes[idx] = amp;
+}
+
+void NoiseMaker::RemoveFreq(char target) {
+    int idx = (int) (target - 65);
+
+    frequencies[idx] = 0.0f;
+    amplitudes[idx] = 0.0f;
+}
+
+void NoiseMaker::Play(char c) {
+    int idx = (int) (c - 65);
+
+    playing[idx] = true;
+}
+
+void NoiseMaker::Release(char c) {
+    int idx = (int) (c - 65);
+    playing[idx] = false;
 }
 

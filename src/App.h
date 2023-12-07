@@ -14,7 +14,7 @@ class App : public wxApp
 public:
     virtual bool OnInit() override;
 private:
-    NoiseMaker* nm;
+
 };
 
 

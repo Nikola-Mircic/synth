@@ -7,10 +7,14 @@
 
 #include <wx/wx.h>
 
+#include "player/NoiseMaker.h"
+
 class App : public wxApp
 {
 public:
     virtual bool OnInit() override;
+private:
+    NoiseMaker* nm;
 };
 
 

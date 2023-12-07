@@ -27,8 +27,8 @@ add_executable(synth
         src/App.cpp
         src/Frame.cpp
         src/Frame.h
-        src/player/NoiceMaker.cpp
-        src/player/NoiceMaker.h)
+        src/player/NoiseMaker.cpp
+        src/player/NoiseMaker.h)
 
 target_include_directories(synth PRIVATE /opt/portaudio/src/common/)
 target_link_libraries(synth portaudio)

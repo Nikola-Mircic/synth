@@ -2,19 +2,19 @@
 // Created by nikola on 6.12.23..
 //
 
-#include "NoiseMaker.h"
+#include "Player.h"
 
-NoiseMaker* NoiseMaker::instance = nullptr;
+Player* Player::instance = nullptr;
 
-NoiseMaker::NoiseMaker() {
+Player::Player() {
     Init();
 }
 
-NoiseMaker::~NoiseMaker() {
+Player::~Player() {
     Stop();
 }
 
-void NoiseMaker::Init() {
+void Player::Init() {
     PaError err;
     RUN_COMMAND(Pa_Initialize())
 
@@ -24,30 +24,30 @@ void NoiseMaker::Init() {
                                      2,          /* stereo output */
                                      paFloat32,  /* 32 bit floating point output */
                                      SAMPLE_RATE,
-                                     256,        /* frames per buffer, i.e. the number
+                                     paFramesPerBufferUnspecified,        /* frames per buffer, i.e. the number
                                                    of sample frames that PortAudio will
                                                    request from the callback. Many apps
                                                    may want to use
                                                    paFramesPerBufferUnspecified, which
                                                    tells PortAudio to pick the best,
                                                    possibly changing, buffer size.*/
-                                     NoiseMaker::CallbackFunc, /* this is your callback function */
+                                     Player::CallbackFunc, /* this is your callback function */
                                      nullptr) /*This is a pointer that will be passed to
                                                    your callback*/
     )
 }
 
-void NoiseMaker::Start() {
+void Player::Start() {
     PaError err;
     RUN_COMMAND(Pa_StartStream(stream))
 }
 
-void NoiseMaker::Pause() {
+void Player::Pause() {
     PaError err;
     RUN_COMMAND(Pa_StopStream(stream))
 }
 
-void NoiseMaker::Stop() {
+void Player::Stop() {
     PaError err;
     RUN_COMMAND(Pa_StopStream(stream))
 
@@ -60,14 +60,11 @@ void NoiseMaker::Stop() {
  * that could mess up the system like calling malloc() or free().
 */
 
-static float phase = 0.0f;
-static float phaseStep = 500.0f*2*M_PI/SAMPLE_RATE;
-
-int NoiseMaker::CallbackFunc(const void *inputBuffer, void *outputBuffer,
-                        unsigned long framesPerBuffer,
-                        const PaStreamCallbackTimeInfo* timeInfo,
-                        PaStreamCallbackFlags statusFlags,
-                        void *data )
+int Player::CallbackFunc(const void *inputBuffer, void *outputBuffer,
+                         unsigned long framesPerBuffer,
+                         const PaStreamCallbackTimeInfo* timeInfo,
+                         PaStreamCallbackFlags statusFlags,
+                         void *data )
 {
     //float* phasef = (float* ) phase;
     double callTime = timeInfo->outputBufferDacTime;
@@ -81,7 +78,7 @@ int NoiseMaker::CallbackFunc(const void *inputBuffer, void *outputBuffer,
     {
         callTime += timeStep;
 
-        float sample = NoiseMaker::getInstance()->waveFunc(callTime);
+        float sample = Player::getInstance()->waveFunc(callTime);
         *(out++) = sample;
         *(out++) = sample;
 
@@ -89,13 +86,13 @@ int NoiseMaker::CallbackFunc(const void *inputBuffer, void *outputBuffer,
     return 0;
 }
 
-void NoiseMaker::useWaveFunc(float (*wF)(double)) {
-    NoiseMaker::getInstance()->waveFunc = wF;
+void Player::useWaveFunc(float (*wF)(double)) {
+    Player::getInstance()->waveFunc = wF;
 }
 
-NoiseMaker *NoiseMaker::getInstance(){
-    if(NoiseMaker::instance == nullptr){
-        NoiseMaker::instance = new NoiseMaker();
+Player *Player::getInstance(){
+    if(Player::instance == nullptr){
+        Player::instance = new Player();
     }
 
     return instance;

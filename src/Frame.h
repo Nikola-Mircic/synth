@@ -6,7 +6,7 @@
 #define SYNTH_FRAME_H
 
 #include "wx/wx.h"
-#include "player/NoiseMaker.h"
+#include "instrument/Instrument.h"
 
 class Frame : public wxFrame
 {
@@ -14,7 +14,7 @@ public:
     Frame();
 
 private:
-    NoiseMaker* nm;
+    Instrument* instrument;
 
     void KeyDown(wxKeyEvent& event);
     void OnExit(wxCommandEvent& event);

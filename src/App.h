@@ -7,7 +7,7 @@
 
 #include <wx/wx.h>
 
-#include "player/NoiseMaker.h"
+#include "player/Player.h"
 
 class App : public wxApp
 {

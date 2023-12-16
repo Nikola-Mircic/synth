@@ -2,8 +2,8 @@
 // Created by nikola on 6.12.23..
 //
 
-#ifndef SYNTH_NOISEMAKER_H
-#define SYNTH_NOISEMAKER_H
+#ifndef SYNTH_PLAYER_H
+#define SYNTH_PLAYER_H
 
 #include <cstdio>
 #include <cmath>
@@ -17,32 +17,32 @@
                        if( err != paNoError )   \
                             printf(  "PortAudio error: %s\n", Pa_GetErrorText( err ) );
 
-class NoiseMaker{
+class Player{
+private:
+    Player();
+    ~Player();
+
+    static Player* instance;
+
+    PaStream* stream;
 public:
-    NoiseMaker();
-    ~NoiseMaker();
+    static Player* getInstance();
+
     static int CallbackFunc(const void *inputBuffer, void *outputBuffer,
                             unsigned long framesPerBuffer,
                             const PaStreamCallbackTimeInfo* timeInfo,
                             PaStreamCallbackFlags statusFlags,
                             void *phase );
 
-    static float* frequencies;
-    static float* amplitudes;
-    static bool* playing;
+    void useWaveFunc(float (*waveFunc)(double time));
+    float (*waveFunc)(double time);
 
     void Init();
     void Start();
     void Pause();
     void Stop();
 
-    void BindFreq(char target, float freq, float amp);
-    void RemoveFreq(char target);
-
-    void Play(char c);
-    void Release(char c);
-private:
-    PaStream* stream;
+    Player(const Player& nm) = delete;
 };
 
-#endif //SYNTH_NOISEMAKER_H
+#endif //SYNTH_PLAYER_H

@@ -2,25 +2,19 @@
 // Created by nikola on 6.12.23..
 //
 
-#include "NoiseMaker.h"
+#include "Player.h"
 
-float* NoiseMaker::frequencies = new float[26];
-float* NoiseMaker::amplitudes = new float[26];
-bool* NoiseMaker::playing = new bool[26];
+Player* Player::instance = nullptr;
 
-NoiseMaker::NoiseMaker() {
-    for(int i=0;i<26;++i) frequencies[i] = 0.0f;
-    for(int i=0;i<26;++i) amplitudes[i] = 0.0f;
-    for(int i=0;i<26;++i) playing[i] = false;
-
+Player::Player() {
     Init();
 }
 
-NoiseMaker::~NoiseMaker() {
+Player::~Player() {
     Stop();
 }
 
-void NoiseMaker::Init() {
+void Player::Init() {
     PaError err;
     RUN_COMMAND(Pa_Initialize())
 
@@ -30,30 +24,30 @@ void NoiseMaker::Init() {
                                      2,          /* stereo output */
                                      paFloat32,  /* 32 bit floating point output */
                                      SAMPLE_RATE,
-                                     256,        /* frames per buffer, i.e. the number
+                                     paFramesPerBufferUnspecified,        /* frames per buffer, i.e. the number
                                                    of sample frames that PortAudio will
                                                    request from the callback. Many apps
                                                    may want to use
                                                    paFramesPerBufferUnspecified, which
                                                    tells PortAudio to pick the best,
                                                    possibly changing, buffer size.*/
-                                     NoiseMaker::CallbackFunc, /* this is your callback function */
+                                     Player::CallbackFunc, /* this is your callback function */
                                      nullptr) /*This is a pointer that will be passed to
                                                    your callback*/
     )
 }
 
-void NoiseMaker::Start() {
+void Player::Start() {
     PaError err;
     RUN_COMMAND(Pa_StartStream(stream))
 }
 
-void NoiseMaker::Pause() {
+void Player::Pause() {
     PaError err;
     RUN_COMMAND(Pa_StopStream(stream))
 }
 
-void NoiseMaker::Stop() {
+void Player::Stop() {
     PaError err;
     RUN_COMMAND(Pa_StopStream(stream))
 
@@ -66,14 +60,11 @@ void NoiseMaker::Stop() {
  * that could mess up the system like calling malloc() or free().
 */
 
-static float phase = 0.0f;
-static float phaseStep = 500.0f*2*M_PI/SAMPLE_RATE;
-
-int NoiseMaker::CallbackFunc(const void *inputBuffer, void *outputBuffer,
-                        unsigned long framesPerBuffer,
-                        const PaStreamCallbackTimeInfo* timeInfo,
-                        PaStreamCallbackFlags statusFlags,
-                        void *data )
+int Player::CallbackFunc(const void *inputBuffer, void *outputBuffer,
+                         unsigned long framesPerBuffer,
+                         const PaStreamCallbackTimeInfo* timeInfo,
+                         PaStreamCallbackFlags statusFlags,
+                         void *data )
 {
     //float* phasef = (float* ) phase;
     double callTime = timeInfo->outputBufferDacTime;
@@ -85,44 +76,25 @@ int NoiseMaker::CallbackFunc(const void *inputBuffer, void *outputBuffer,
 
     for(unsigned int i=0; i<framesPerBuffer; ++i )
     {
-         callTime += timeStep;
-        *(out) = 0;
-        *(out+1) = 0;
-        for(int f=0;f<26;++f){
-            if(!playing[f]) continue;
+        callTime += timeStep;
 
-            *(out) += std::sin(frequencies[f]*2*M_PI*callTime) * amplitudes[f];
-            *(out+1) += std::sin(frequencies[f]*2*M_PI*callTime) * amplitudes[f];
-        }
-        out += 2;
+        float sample = Player::getInstance()->waveFunc(callTime);
+        *(out++) = sample;
+        *(out++) = sample;
+
     }
     return 0;
 }
 
-void NoiseMaker::BindFreq(char target, float freq, float amp) {
-    int idx = (int) (target - 'a');
-
-    std::cout << idx << std::endl;
-
-    frequencies[idx] = freq;
-    amplitudes[idx] = amp;
+void Player::useWaveFunc(float (*wF)(double)) {
+    Player::getInstance()->waveFunc = wF;
 }
 
-void NoiseMaker::RemoveFreq(char target) {
-    int idx = (int) (target - 65);
+Player *Player::getInstance(){
+    if(Player::instance == nullptr){
+        Player::instance = new Player();
+    }
 
-    frequencies[idx] = 0.0f;
-    amplitudes[idx] = 0.0f;
-}
-
-void NoiseMaker::Play(char c) {
-    int idx = (int) (c - 65);
-
-    playing[idx] = true;
-}
-
-void NoiseMaker::Release(char c) {
-    int idx = (int) (c - 65);
-    playing[idx] = false;
+    return instance;
 }
 

@@ -4,15 +4,9 @@
 
 #include "NoiseMaker.h"
 
-float* NoiseMaker::frequencies = new float[26];
-float* NoiseMaker::amplitudes = new float[26];
-bool* NoiseMaker::playing = new bool[26];
+NoiseMaker* NoiseMaker::instance = nullptr;
 
 NoiseMaker::NoiseMaker() {
-    for(int i=0;i<26;++i) frequencies[i] = 0.0f;
-    for(int i=0;i<26;++i) amplitudes[i] = 0.0f;
-    for(int i=0;i<26;++i) playing[i] = false;
-
     Init();
 }
 
@@ -85,44 +79,25 @@ int NoiseMaker::CallbackFunc(const void *inputBuffer, void *outputBuffer,
 
     for(unsigned int i=0; i<framesPerBuffer; ++i )
     {
-         callTime += timeStep;
-        *(out) = 0;
-        *(out+1) = 0;
-        for(int f=0;f<26;++f){
-            if(!playing[f]) continue;
+        callTime += timeStep;
 
-            *(out) += std::sin(frequencies[f]*2*M_PI*callTime) * amplitudes[f];
-            *(out+1) += std::sin(frequencies[f]*2*M_PI*callTime) * amplitudes[f];
-        }
-        out += 2;
+        float sample = NoiseMaker::getInstance()->waveFunc(callTime);
+        *(out++) = sample;
+        *(out++) = sample;
+
     }
     return 0;
 }
 
-void NoiseMaker::BindFreq(char target, float freq, float amp) {
-    int idx = (int) (target - 'a');
-
-    std::cout << idx << std::endl;
-
-    frequencies[idx] = freq;
-    amplitudes[idx] = amp;
+void NoiseMaker::useWaveFunc(float (*wF)(double)) {
+    NoiseMaker::getInstance()->waveFunc = wF;
 }
 
-void NoiseMaker::RemoveFreq(char target) {
-    int idx = (int) (target - 65);
+NoiseMaker *NoiseMaker::getInstance(){
+    if(NoiseMaker::instance == nullptr){
+        NoiseMaker::instance = new NoiseMaker();
+    }
 
-    frequencies[idx] = 0.0f;
-    amplitudes[idx] = 0.0f;
-}
-
-void NoiseMaker::Play(char c) {
-    int idx = (int) (c - 65);
-
-    playing[idx] = true;
-}
-
-void NoiseMaker::Release(char c) {
-    int idx = (int) (c - 65);
-    playing[idx] = false;
+    return instance;
 }
 

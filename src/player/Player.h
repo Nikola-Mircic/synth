@@ -18,31 +18,31 @@
                             printf(  "PortAudio error: %s\n", Pa_GetErrorText( err ) );
 
 class NoiseMaker{
-public:
+private:
     NoiseMaker();
     ~NoiseMaker();
+
+    static NoiseMaker* instance;
+
+    PaStream* stream;
+public:
+    static NoiseMaker* getInstance();
+
     static int CallbackFunc(const void *inputBuffer, void *outputBuffer,
                             unsigned long framesPerBuffer,
                             const PaStreamCallbackTimeInfo* timeInfo,
                             PaStreamCallbackFlags statusFlags,
                             void *phase );
 
-    static float* frequencies;
-    static float* amplitudes;
-    static bool* playing;
+    void useWaveFunc(float (*waveFunc)(double time));
+    float (*waveFunc)(double time);
 
     void Init();
     void Start();
     void Pause();
     void Stop();
 
-    void BindFreq(char target, float freq, float amp);
-    void RemoveFreq(char target);
-
-    void Play(char c);
-    void Release(char c);
-private:
-    PaStream* stream;
+    NoiseMaker(const NoiseMaker& nm) = delete;
 };
 
 #endif //SYNTH_NOISEMAKER_H

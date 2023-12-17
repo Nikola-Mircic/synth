@@ -19,12 +19,15 @@ Instrument::Instrument(){
     for(int i=0;i<50;++i) playing[i] = false;
 
     for(int i=0;i<50;++i){
-        envelopes[i].attackTime  = 0.5;
-        envelopes[i].decayTime   = 1.0;
+        envelopes[i].attackTime  = 0.1;
+        envelopes[i].decayTime   = 1.5;
         envelopes[i].sustainLvl  = 0.0;
-        envelopes[i].releaseTime = 0.5;
+        envelopes[i].releaseTime = 0.75;
         envelopes[i].timeOn      = 0.0;
         envelopes[i].timeOff     = 0.0;
+
+        envelopes[i].amplitude   = 0.3;
+        envelopes[i].releaseAmpl = 0.0;
     }
 
     nm = Player::getInstance();
@@ -33,8 +36,11 @@ Instrument::Instrument(){
 
     std::string chars("asdfghjkl;'");
 
+
+    double noteStep = std::pow(4, 1.0/chars.size());
+
     for(int i=0; i<chars.size(); ++i){
-        BindFreq(chars[i], 250.0f * std::pow(1.15, i), 0.3f);
+        BindFreq(chars[i], 311.127f * std::pow(noteStep, i), 0.15f);
     }
 
     nm->Start();
@@ -59,13 +65,11 @@ float Instrument::waveFunc(double time) {
 
     for(int f=0;f<26;++f){
 
-        freq = w(frequencies[f])*time;
+        freq = w(frequencies[f])*time + 0.001*w(frequencies[f])*std::sin(w(2.0)*time);
 
-        amp = (float) envelopes[f].getAmplitude(amplitudes[f], time);
+        amp = (float) envelopes[f].getAmplitude(time);
 
-        sample += std::sin(freq) * amp
-                       +  std::sin(freq*2.0) * amp/2
-                       +  std::sin(freq*4.0) * amp/4;
+        sample += std::sin(freq) * amp;
     }
 
     return sample;
@@ -84,6 +88,8 @@ void Instrument::Play(char note) {
             system_clock::now().time_since_epoch()
     );
 
+    envelopes[idx].amplitude = amplitudes[idx];
+    envelopes[idx].releaseAmpl = 0.0;
     envelopes[idx].timeOn = us.count()/1000000.0;
     envelopes[idx].timeOff = 0.0;
 }
@@ -107,6 +113,7 @@ void Instrument::BindFreq(char target, float freq, float amp) {
 
     frequencies[idx] = freq;
     amplitudes[idx] = amp;
+    envelopes[idx].amplitude = amp;
 }
 
 void Instrument::RemoveFreq(char target) {

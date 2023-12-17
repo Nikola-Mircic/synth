@@ -19,26 +19,31 @@ struct Envelope{
     double sustainLvl;
     double releaseTime;
 
+    double amplitude;
+    double releaseAmpl;
+
     double timeOn;
     double timeOff;
 
-    double getAmplitude(float amplitude, double time) const{
+    double getAmplitude(double time){
         if(timeOff != 0.0){
             double timePlaying = time-timeOff;
 
             if(timePlaying >= releaseTime)
                 return 0.0f;
             else
-                return amplitude * (1-timePlaying/releaseTime);
+                return releaseAmpl * (1-timePlaying/releaseTime);
         }else if(timeOn != 0.0){
             double timePlaying = time-timeOn;
 
             if(timePlaying <= attackTime)
-                return amplitude * (timePlaying/attackTime);
+                releaseAmpl = amplitude * (timePlaying/attackTime);
             else if(timePlaying <= attackTime+decayTime)
-                return amplitude - (amplitude-sustainLvl)*(1-(timePlaying-attackTime)/decayTime);
+                releaseAmpl = (amplitude-sustainLvl)*(1-(timePlaying-attackTime)/decayTime);
             else
-                return sustainLvl;
+                releaseAmpl = sustainLvl;
+
+            return releaseAmpl;
         }
 
         return 0.0;

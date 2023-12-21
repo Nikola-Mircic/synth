@@ -19,10 +19,10 @@ Instrument::Instrument(){
     for(int i=0;i<50;++i) playing[i] = false;
 
     for(int i=0;i<50;++i){
-        envelopes[i].attackTime  = 0.1;
-        envelopes[i].decayTime   = 1.5;
+        envelopes[i].attackTime  = 0.2;
+        envelopes[i].decayTime   = 2.0;
         envelopes[i].sustainLvl  = 0.0;
-        envelopes[i].releaseTime = 0.75;
+        envelopes[i].releaseTime = 1.5;
         envelopes[i].timeOn      = 0.0;
         envelopes[i].timeOff     = 0.0;
 
@@ -40,7 +40,8 @@ Instrument::Instrument(){
     double noteStep = std::pow(4, 1.0/chars.size());
 
     for(int i=0; i<chars.size(); ++i){
-        BindFreq(chars[i], 311.127f * std::pow(noteStep, i), 0.15f);
+        double step = std::pow(noteStep, i);
+        BindFreq(chars[i], 311.127f * step, 0.3f/step);
     }
 
     nm->Start();
@@ -65,7 +66,7 @@ float Instrument::waveFunc(double time) {
 
     for(int f=0;f<26;++f){
 
-        freq = w(frequencies[f])*time + 0.001*w(frequencies[f])*std::sin(w(2.0)*time);
+        freq = w(frequencies[f])*time;
 
         amp = (float) envelopes[f].getAmplitude(time);
 

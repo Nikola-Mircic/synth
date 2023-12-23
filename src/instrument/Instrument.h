@@ -39,7 +39,7 @@ struct Envelope{
             if(timePlaying <= attackTime)
                 releaseAmpl = amplitude * (timePlaying/attackTime);
             else if(timePlaying <= attackTime+decayTime)
-                releaseAmpl = (amplitude-sustainLvl)*(1-(timePlaying-attackTime)/decayTime);
+                releaseAmpl = amplitude - (amplitude-sustainLvl)*(timePlaying-attackTime)/decayTime;
             else
                 releaseAmpl = sustainLvl;
 

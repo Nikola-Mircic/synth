@@ -21,20 +21,12 @@ find_package(wxWidgets REQUIRED COMPONENTS net gl core base)
 
 include_directories(include)
 
-add_executable(synth
-        include/libportaudio.a
-        src/main.cpp
-        src/App.cpp
-        src/Frame.cpp
-        src/Frame.h
-        src/player/Player.cpp
-        src/player/Player.h
-        src/instrument/Instrument.cpp
-        src/instrument/Instrument.h)
+file(GLOB_RECURSE SRCS "src/*.cpp")
+
+add_executable(synth ${SRCS})
 
 target_include_directories(synth PRIVATE /opt/portaudio/src/common/)
 target_link_libraries(synth portaudio)
-target_link_libraries(synth ncurses)
 
 if(wxWidgets_FOUND)
     include(${wxWidgets_USE_FILE})

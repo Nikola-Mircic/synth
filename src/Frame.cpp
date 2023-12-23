@@ -11,6 +11,7 @@
 #define FRAME_SIZE wxSize(400, 400)
 #define FRAME_STYLE (wxDEFAULT_FRAME_STYLE | wxWANTS_CHARS)
 
+#include "instrument/Piano.h"
 
 Frame::Frame()
         : wxFrame(nullptr, FRAME_ID, FRAME_TITLE, FRAME_POS, FRAME_SIZE, FRAME_STYLE, "")
@@ -20,22 +21,28 @@ Frame::Frame()
     mainPane->Bind(wxEVT_KEY_DOWN, &Frame::KeyDown, this);
     mainPane->Bind(wxEVT_KEY_UP, &Frame::KeyUp, this);
 
-    instrument = new Instrument();
+    player = Player::getInstance();
+
+    player ->useInstrument(new Piano());
+
+    player->Init();
+    player->Start();
 }
 
 void Frame::KeyDown(wxKeyEvent& event) {
-    instrument->Play(event.GetKeyCode());
+    player->Play(event.GetKeyCode());
 
     event.Skip();
 }
 
 void Frame::KeyUp(wxKeyEvent& event) {
-    instrument->Release(event.GetKeyCode());
+    player->Release(event.GetKeyCode());
 
     event.Skip();
 }
 
 void Frame::OnExit(wxCommandEvent& event)
 {
+    player->Stop();
     Close(true);
 }

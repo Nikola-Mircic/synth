@@ -5,6 +5,7 @@
 #include "Player.h"
 
 Player* Player::instance = nullptr;
+Instrument* Player::instrument = nullptr;
 
 Player::Player() {
     Init();
@@ -66,7 +67,7 @@ int Player::CallbackFunc(const void *inputBuffer, void *outputBuffer,
                          PaStreamCallbackFlags statusFlags,
                          void *data )
 {
-    //float* phasef = (float* ) phase;
+
     double callTime = timeInfo->outputBufferDacTime;
     double timeStep = (1.0f)/SAMPLE_RATE;
 
@@ -78,16 +79,18 @@ int Player::CallbackFunc(const void *inputBuffer, void *outputBuffer,
     {
         callTime += timeStep;
 
-        float sample = Player::getInstance()->waveFunc(callTime);
+        if(!instrument) {
+            *(out++) = 0;
+            *(out++) = 0;
+            continue;
+        }
+
+        float sample = instrument->waveFunc(callTime);
         *(out++) = sample;
         *(out++) = sample;
 
     }
     return 0;
-}
-
-void Player::useWaveFunc(float (*wF)(double)) {
-    Player::getInstance()->waveFunc = wF;
 }
 
 Player *Player::getInstance(){
@@ -96,5 +99,17 @@ Player *Player::getInstance(){
     }
 
     return instance;
+}
+
+void Player::useInstrument(Instrument *i) {
+    Player::instrument = i;
+}
+
+void Player::Play(char note) {
+    instrument->Play(note);
+}
+
+void Player::Release(char note) {
+    instrument->Release(note);
 }
 

@@ -4,76 +4,57 @@
 
 #include "Instrument.h"
 
-#define w(x) ((x)*2*M_PI)
-
 using namespace std::chrono;
 
-float* Instrument::frequencies = new float[50];
-float* Instrument::amplitudes = new float[50];
-bool* Instrument::playing = new bool[50];
-Envelope* Instrument::envelopes = new Envelope[50];
+void BindKeys(Instrument* instrument){
+    std::string chars("asdfghjk");
 
-Instrument::Instrument(){
-    for(int i=0;i<50;++i) frequencies[i] = 0.0f;
-    for(int i=0;i<50;++i) amplitudes[i] = 0.0f;
-    for(int i=0;i<50;++i) playing[i] = false;
-
-    for(int i=0;i<50;++i){
-        envelopes[i].attackTime  = 0.2;
-        envelopes[i].decayTime   = 2.0;
-        envelopes[i].sustainLvl  = 0.0;
-        envelopes[i].releaseTime = 1.5;
-        envelopes[i].timeOn      = 0.0;
-        envelopes[i].timeOff     = 0.0;
-
-        envelopes[i].amplitude   = 0.3;
-        envelopes[i].releaseAmpl = 0.0;
-    }
-
-    nm = Player::getInstance();
-
-    nm->useWaveFunc(waveFunc);
-
-    std::string chars("asdfghjkl;'");
-
-
-    double noteStep = std::pow(4, 1.0/chars.size());
+    double noteStep = std::pow(2.0, 1.0/chars.size());
 
     for(int i=0; i<chars.size(); ++i){
         double step = std::pow(noteStep, i);
-        BindFreq(chars[i], 311.127f * step, 0.3f/step);
+        instrument->BindFreq(chars[i], 339.29f * step, 0.3f/step);
     }
-
-    nm->Start();
 }
 
-Instrument::Instrument(Player* nm): nm(nm) {
-    for(int i=0;i<50;++i) frequencies[i] = 0.0f;
-    for(int i=0;i<50;++i) amplitudes[i] = 0.0f;
+void FreeKeys(Instrument* instrument){
+    std::string chars("asdfghjk");
+
+    for(int i=0; i<chars.size(); ++i){
+        instrument->RemoveFreq(chars[i]);
+    }
+}
+
+Instrument::Instrument(){
+    frequencies = new std::vector<float>();
+    envelopes = new std::vector<Envelope>();
+    playing = new bool[50];
+
+    for(int i=0;i<50;++i) frequencies->push_back(0.0f);
     for(int i=0;i<50;++i) playing[i] = false;
 
-    nm->Start();
+    for(int i=0;i<50;++i){
+        envelopes->emplace_back(0.2,2.0,0.0,1.5);
+
+        envelopes->at(i).amplitude   = 0.3;
+        envelopes->at(i).releaseAmpl = 0.0;
+    }
+
+    BindKeys(this);
+
+    std::cout << "Frequencies: \n";
+    for(float f : *frequencies){
+        std::cout << f << " ";
+    }
+    std::cout << std::endl;
 }
 
 Instrument::~Instrument() {
-    nm->Stop();
-}
+    FreeKeys(this);
 
-float Instrument::waveFunc(double time) {
-    float sample = 0.0f;
-    double freq;
-    float amp = 0.0f;
-
-    for(int f=0;f<26;++f){
-
-        freq = w(frequencies[f])*time;
-
-        amp = (float) envelopes[f].getAmplitude(time);
-
-        sample += std::sin(freq) * amp;
-    }
-
-    return sample;
+    delete frequencies;
+    delete envelopes;
+    delete playing;
 }
 
 void Instrument::Play(char note) {
@@ -81,7 +62,7 @@ void Instrument::Play(char note) {
 
     if(playing[idx]) return;
 
-    printf(" %c : %.2f - %.2f \n", note, frequencies[idx], amplitudes[idx]);
+    printf(" %c : %.2f - %.2f \n", note, frequencies->at(idx), envelopes->at(idx).amplitude);
 
     playing[idx] = true;
 
@@ -89,10 +70,9 @@ void Instrument::Play(char note) {
             system_clock::now().time_since_epoch()
     );
 
-    envelopes[idx].amplitude = amplitudes[idx];
-    envelopes[idx].releaseAmpl = 0.0;
-    envelopes[idx].timeOn = us.count()/1000000.0;
-    envelopes[idx].timeOff = 0.0;
+    envelopes->at(idx).releaseAmpl = 0.0;
+    envelopes->at(idx).timeOn = us.count()/1000000.0;
+    envelopes->at(idx).timeOff = 0.0;
 }
 
 void Instrument::Release(char note) {
@@ -103,8 +83,8 @@ void Instrument::Release(char note) {
             system_clock::now().time_since_epoch()
     );
 
-    envelopes[idx].timeOn = 0.0;
-    envelopes[idx].timeOff = us.count()/1000000.0;
+    envelopes->at(idx).timeOn = 0.0;
+    envelopes->at(idx).timeOff = us.count()/1000000.0;
 }
 
 void Instrument::BindFreq(char target, float freq, float amp) {
@@ -112,16 +92,32 @@ void Instrument::BindFreq(char target, float freq, float amp) {
 
     std::cout << idx << std::endl;
 
-    frequencies[idx] = freq;
-    amplitudes[idx] = amp;
-    envelopes[idx].amplitude = amp;
+    if(idx>=0 && idx<frequencies->size())
+        frequencies->at(idx) = freq;
+    if(idx>=0 && idx<envelopes->size())
+        envelopes->at(idx).amplitude = amp;
 }
 
 void Instrument::RemoveFreq(char target) {
     int idx = (int) (target - 65);
 
-    frequencies[idx] = 0.0f;
-    amplitudes[idx] = 0.0f;
+    if(idx>=0 && idx<frequencies->size())
+        frequencies->at(idx) = 0.0f;
 }
 
+float Instrument::waveFunc(double time) {
+    float sample = 0.0f;
+    double freq;
+    float amp = 0.0f;
 
+    for(int f=0;f<26;++f){
+
+        freq = w(frequencies->at(f)) * time;
+
+        amp = (float) envelopes->at(f).getAmplitude(time);
+
+        sample += std::sin(freq) * amp;
+    }
+
+    return sample;
+}

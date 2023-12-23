@@ -11,6 +11,7 @@
 #define FRAME_SIZE wxSize(400, 400)
 #define FRAME_STYLE (wxDEFAULT_FRAME_STYLE | wxWANTS_CHARS)
 
+#include "instrument/Piano.h"
 
 Frame::Frame()
         : wxFrame(nullptr, FRAME_ID, FRAME_TITLE, FRAME_POS, FRAME_SIZE, FRAME_STYLE, "")
@@ -22,7 +23,7 @@ Frame::Frame()
 
     player = Player::getInstance();
 
-    player ->useInstrument(new Instrument());
+    player ->useInstrument(new Piano());
 
     player->Init();
     player->Start();

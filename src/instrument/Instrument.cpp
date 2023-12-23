@@ -4,23 +4,21 @@
 
 #include "Instrument.h"
 
-#define w(x) ((x)*2*M_PI)
-
 using namespace std::chrono;
 
 void BindKeys(Instrument* instrument){
-    std::string chars("asdfghjkl;'");
+    std::string chars("asdfghjk");
 
-    double noteStep = std::pow(4, 1.0/chars.size());
+    double noteStep = std::pow(2.0, 1.0/chars.size());
 
     for(int i=0; i<chars.size(); ++i){
         double step = std::pow(noteStep, i);
-        instrument->BindFreq(chars[i], 311.127f * step, 0.3f/step);
+        instrument->BindFreq(chars[i], 339.29f * step, 0.3f/step);
     }
 }
 
 void FreeKeys(Instrument* instrument){
-    std::string chars("asdfghjkl;'");
+    std::string chars("asdfghjk");
 
     for(int i=0; i<chars.size(); ++i){
         instrument->RemoveFreq(chars[i]);
@@ -43,6 +41,12 @@ Instrument::Instrument(){
     }
 
     BindKeys(this);
+
+    std::cout << "Frequencies: \n";
+    for(float f : *frequencies){
+        std::cout << f << " ";
+    }
+    std::cout << std::endl;
 }
 
 Instrument::~Instrument() {

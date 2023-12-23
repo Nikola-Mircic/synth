@@ -14,6 +14,8 @@
 
 #include "Envelope.h"
 
+#define w(x) ((x)*2*M_PI)
+
 class Instrument {
 public:
     Instrument();
@@ -26,7 +28,8 @@ public:
     void Release(char note);
 
     virtual float waveFunc(double time);
-private:
+
+protected:
     std::vector<float>* frequencies;
     bool* playing;
     std::vector<Envelope>* envelopes;

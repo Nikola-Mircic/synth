@@ -6,7 +6,7 @@
 #define SYNTH_FRAME_H
 
 #include "wx/wx.h"
-#include "instrument/Instrument.h"
+#include "player/Player.h"
 
 class Frame : public wxFrame
 {
@@ -14,7 +14,7 @@ public:
     Frame();
 
 private:
-    Instrument* instrument;
+    Player* player;
 
     void KeyDown(wxKeyEvent& event);
     void OnExit(wxCommandEvent& event);

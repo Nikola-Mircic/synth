@@ -23,7 +23,9 @@ include_directories(include)
 
 file(GLOB_RECURSE SRCS "src/*.cpp")
 
-add_executable(synth ${SRCS})
+add_executable(synth ${SRCS}
+        src/instrument/Envelope.h
+)
 
 target_include_directories(synth PRIVATE /opt/portaudio/src/common/)
 target_link_libraries(synth portaudio)

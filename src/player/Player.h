@@ -11,6 +11,8 @@
 
 #include "portaudio.h"
 
+#include "../instrument/Instrument.h"
+
 #define SAMPLE_RATE 44100
 
 #define RUN_COMMAND(x) err = (x);               \
@@ -25,6 +27,8 @@ private:
     static Player* instance;
 
     PaStream* stream;
+
+    static Instrument* instrument;
 public:
     static Player* getInstance();
 
@@ -34,13 +38,15 @@ public:
                             PaStreamCallbackFlags statusFlags,
                             void *phase );
 
-    void useWaveFunc(float (*waveFunc)(double time));
-    float (*waveFunc)(double time);
+    void useInstrument(Instrument* instrument);
 
     void Init();
     void Start();
     void Pause();
     void Stop();
+
+    void Play(char note);
+    void Release(char note);
 
     Player(const Player& nm) = delete;
 };

@@ -20,22 +20,28 @@ Frame::Frame()
     mainPane->Bind(wxEVT_KEY_DOWN, &Frame::KeyDown, this);
     mainPane->Bind(wxEVT_KEY_UP, &Frame::KeyUp, this);
 
-    instrument = new Instrument();
+    player = Player::getInstance();
+
+    player ->useInstrument(new Instrument());
+
+    player->Init();
+    player->Start();
 }
 
 void Frame::KeyDown(wxKeyEvent& event) {
-    instrument->Play(event.GetKeyCode());
+    player->Play(event.GetKeyCode());
 
     event.Skip();
 }
 
 void Frame::KeyUp(wxKeyEvent& event) {
-    instrument->Release(event.GetKeyCode());
+    player->Release(event.GetKeyCode());
 
     event.Skip();
 }
 
 void Frame::OnExit(wxCommandEvent& event)
 {
+    player->Stop();
     Close(true);
 }
